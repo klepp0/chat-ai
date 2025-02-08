@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:4.4.6
+    ports:
+      - 27017:27017
+    networks:
+      - chat-ui
+
+  ollama-service:
+    image: ollama/ollama
+    ports:
+      - 11434:11434
+    volumes:
+      - ./ollama:/root/.ollama
+    networks:
+      - chat-ui
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    ports:
+      - 3000:8080 # Match Open WebUI's default port
+    volumes:
+      - open-webui:/app/backend/data
+    depends_on:
+      - ollama-service
+    networks:
+      - chat-ui
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  open-webui:
+
+networks:
+  chat-ui:
+    driver: bridge
